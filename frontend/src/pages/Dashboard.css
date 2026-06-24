@@ -1,0 +1,103 @@
+/* =============================================================
+   Dashboard Page
+   ============================================================= */
+
+.dashboard__kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-6);
+  margin-bottom: var(--space-8);
+}
+
+/* ---- Bottom panels ---- */
+.dashboard__panels {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: var(--space-6);
+}
+
+/* ---- Alerts panel ---- */
+.dashboard__alert-panel {
+  background: var(--color-bg-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  opacity: 0;
+  animation: fadeIn 0.5s ease-out 0.3s forwards;
+}
+
+.dashboard__panel-title {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-heading);
+  margin-bottom: var(--space-4);
+}
+
+.dashboard__alert-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.dashboard__alert-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
+}
+
+.dashboard__alert-item:hover {
+  border-color: var(--color-border-hover);
+  box-shadow: var(--shadow-glow-sm);
+}
+
+.dashboard__alert-content {
+  flex: 1;
+}
+
+.dashboard__alert-title {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-1);
+}
+
+.dashboard__alert-meta {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+/* ---- Flights panel ---- */
+.dashboard__flights-panel {
+  background: var(--color-bg-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  opacity: 0;
+  animation: fadeIn 0.5s ease-out 0.4s forwards;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 1024px) {
+  .dashboard__kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashboard__panels {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard__kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}

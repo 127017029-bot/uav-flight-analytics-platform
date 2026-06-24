@@ -1,0 +1,40 @@
+/* =============================================================
+   AppShell — Main Layout Wrapper
+   ============================================================= */
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app-shell__content {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  transition: margin-left var(--transition-slow);
+}
+
+.app-shell__content--collapsed {
+  margin-left: var(--sidebar-collapsed-width);
+}
+
+.app-shell__main {
+  flex: 1;
+  padding: var(--space-6);
+  max-width: var(--page-max-width);
+  width: 100%;
+}
+
+/* ---- Mobile: sidebar as overlay ---- */
+@media (max-width: 768px) {
+  .app-shell__content,
+  .app-shell__content--collapsed {
+    margin-left: 0;
+  }
+
+  .app-shell__main {
+    padding: var(--space-4);
+  }
+}

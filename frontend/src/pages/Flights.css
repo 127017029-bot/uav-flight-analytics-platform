@@ -1,0 +1,43 @@
+/* =============================================================
+   Flights Page
+   ============================================================= */
+
+.flights__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+}
+
+.flights__title {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-heading);
+}
+
+.flights__risk {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 22px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  font-family: var(--font-mono);
+}
+
+.flights__risk--low {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.flights__risk--medium {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.flights__risk--high {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}

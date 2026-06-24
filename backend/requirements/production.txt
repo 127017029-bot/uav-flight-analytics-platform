@@ -1,0 +1,7 @@
+# =============================================================================
+# UAV Digital Twin Platform – Production Dependencies
+# =============================================================================
+-r base.txt
+
+# --- Monitoring & Error Tracking ---
+sentry-sdk>=2.0

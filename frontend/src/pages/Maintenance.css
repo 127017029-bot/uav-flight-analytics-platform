@@ -1,0 +1,82 @@
+.maintenance-page { animation: fadeIn 0.4s ease-out; }
+
+.maint-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.maint-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  animation: fadeIn 0.4s ease-out both;
+}
+
+.maint-stat-value { font-size: var(--text-3xl); font-weight: 800; }
+.maint-stat-label { font-size: var(--text-xs); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+.maint-list { display: grid; gap: var(--space-3); }
+
+.maint-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  animation: fadeIn 0.4s ease-out both;
+}
+
+.maint-card-left { display: flex; align-items: center; gap: var(--space-4); }
+
+.maint-type-icon {
+  font-size: 1.5rem;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.maint-card-info { display: flex; flex-direction: column; gap: var(--space-2); }
+
+.maint-card-title-row { display: flex; align-items: center; gap: var(--space-3); }
+.maint-card-title-row h3 { font-size: var(--text-base); }
+
+.maint-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.meta-sep { color: var(--color-border); }
+
+.maint-type-label { text-transform: capitalize; }
+
+.ai-confidence {
+  color: var(--color-accent-2);
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+
+.maint-card-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.maint-detail { display: flex; flex-direction: column; gap: 2px; text-align: right; }
+.maint-detail-label { font-size: var(--text-xs); color: var(--color-text-muted); }
+.maint-detail span:last-child { font-size: var(--text-sm); font-weight: 500; }
+
+@media (max-width: 768px) {
+  .maint-stats { grid-template-columns: repeat(2, 1fr); }
+  .maint-card { flex-direction: column; align-items: flex-start; gap: var(--space-4); }
+  .maint-card-right { width: 100%; justify-content: space-between; }
+}
