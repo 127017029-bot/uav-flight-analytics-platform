@@ -1,280 +1,107 @@
-<div align="center">
+# UAV Digital Twin & Predictive Maintenance Platform
 
-# 🛩️ AI-Powered UAV Digital Twin & Predictive Maintenance Platform
-
-### Enterprise-Grade Fleet Management, Real-Time Analytics, and AI-Driven Maintenance
-
-[![Python](https://img.shields.io/badge/Python-3.13-blue?logo=python&logoColor=white)](https://python.org)
-[![Django](https://img.shields.io/badge/Django-6.0-green?logo=django)](https://djangoproject.com)
-[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://postgresql.org)
-[![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white)](https://redis.io)
-[![scikit-learn](https://img.shields.io/badge/scikit--learn-1.7-F7931E?logo=scikitlearn)](https://scikit-learn.org)
-[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://docker.com)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
-</div>
+A full-stack, low-latency telemetry streaming and predictive maintenance platform for UAV fleets. This system integrates real-time WebSockets, WebGL-based 3D digital twin rendering, interactive geospatial flight planning, and multiple machine learning models (degradation regression, anomaly isolation, and wear classification) into a unified dashboard.
 
 ---
 
-## 🎯 Overview
-
-A **production-grade full-stack platform** for UAV fleet management, real-time telemetry analytics, and AI-driven predictive maintenance. The system ingests high-frequency drone telemetry data via WebSockets, runs 5 machine learning models for battery life prediction, motor anomaly detection, and mission risk assessment, and visualizes drone state through an interactive 3D digital twin.
-
-**Key differentiators**: Physics-based telemetry simulation, LSTM battery RUL prediction, Isolation Forest motor anomaly detection, and real-time WebSocket telemetry streaming at 10Hz.
-
----
-
-## 🏗️ Architecture
+## Technical Stack & Systems Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│  FRONTEND (React 19 + Vite 8)                                         │
-│  Recharts │ Three.js │ Leaflet │ Zustand │ WebSocket Client            │
-└────────────────────────────────┬────────────────────────────────────────┘
-                                 │ HTTP REST / WebSocket (WSS)
-┌────────────────────────────────┼────────────────────────────────────────┐
-│  BACKEND (Django 6.0 + DRF + Channels)                                 │
-│  ┌──────────────┐  ┌─────────────────┐  ┌────────────────────────┐     │
-│  │  REST API     │  │  WebSocket      │  │  Celery Workers        │     │
-│  │  50+ endpoints│  │  Consumers      │  │  Async ML + Analytics  │     │
-│  └──────┬───────┘  └────────┬────────┘  └───────────┬────────────┘     │
-│         │                   │                       │                   │
-│  ┌──────┴───────────────────┴───────────────────────┴──────────────┐   │
-│  │  PostgreSQL 16  │  Redis 7 (Broker/Cache)  │  ML Model Store    │   │
-│  └─────────────────────────────────────────────────────────────────┘   │
-│                                                                         │
-│  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │  ML LAYER: Battery RUL (GBR/LSTM) │ Motor Anomaly (IForest)     │  │
-│  │  Mission Risk (XGBoost) │ Predictive Maintenance (Random Forest) │  │
-│  └──────────────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────────┘
+                                  [ UAV Telemetry Source ]
+                                             │
+                                     (10Hz WebSockets)
+                                             │
+                                             ▼
+                                   [ Nginx Reverse Proxy ]
+                                   /                     \
+                      (HTTP API)  /                       \  (WS /ws/)
+                                 ▼                         ▼
+                           [ Django WSGI ]           [ Channels ASGI ]
+                           (Gunicorn Web)            (Uvicorn Stream)
+                                 │                          │
+                                 +───────────┬──────────────+
+                                             │
+                                             ▼
+                                     [ Redis Broker ] <────> [ Celery Workers ]
+                                             │               (Retrains & Scans)
+                                             ▼
+                              [ PostgreSQL + TimescaleDB ]
 ```
 
----
-
-## ✨ Features
-
-### Fleet Management
-- 🚁 Complete drone CRUD with health tracking
-- 📊 Fleet-wide KPI dashboard
-- 🔋 Battery electrochemical profiling
-- ⚙️ Component-level health monitoring (12 components per drone)
-
-### Real-Time Telemetry
-- 📡 WebSocket-based live telemetry streaming at 10-50Hz
-- 📈 Real-time Recharts visualizations (altitude, speed, battery, attitude)
-- 🌍 Live GPS tracking on interactive Leaflet maps
-- 🎯 30+ telemetry parameters per packet
-
-### AI/ML Intelligence
-- 🔮 **Battery RUL Prediction** — Gradient Boosting/LSTM model predicting remaining charge cycles
-- ⚠️ **Motor Anomaly Detection** — Isolation Forest detecting bearing wear, imbalance, overheating
-- 🎯 **Mission Risk Scoring** — XGBoost model scoring missions 0-100 based on 15 factors
-- 🔧 **Predictive Maintenance** — Random Forest classifying urgency (low/medium/high/critical)
-- 🧠 AI-powered alert generation with confidence scores
-
-### Digital Twin
-- 🎮 3D quadcopter model with React Three Fiber
-- 🔄 Real-time attitude synchronization (roll/pitch/yaw)
-- 🎨 Component health color overlay on 3D model
-- 📹 Flight path 3D replay
-
-### Mission Planning
-- 🗺️ Interactive mission planner with waypoint editor
-- 📍 Multiple mission profiles (survey, inspection, delivery)
-- ⚡ Pre-flight risk assessment with AI recommendations
-- 🛡️ Geofence visualization
+* **Backend (Django Rest Framework & Channels)**: Handles REST API endpoints, real-time ASGI routing, and WebSockets telemetry broadcast (10Hz) via Redis channel layers.
+* **Frontend (React, Vite, Zustand)**: Built with dynamic components, featuring real-time charting via Recharts and global state synchronization.
+* **3D Digital Twin Viewport (React Three Fiber & Drei)**: Renders a 3D drone mesh inside a WebGL Canvas. The model rotates dynamically using Euler angles (roll, pitch, yaw) streamed via WebSockets, and overlays component-level health status in real-time.
+* **Geospatial Mission Planner (React-Leaflet)**: Plots waypoints interactively on dark cartographic tiles, displaying home base anchors, circular geofence boundaries, and polyline flight paths.
+* **Data Layer (PostgreSQL + TimescaleDB)**: Partitioned using hypertables to handle high-frequency telemetry streams. Includes automated data retention (90 days) and chunk compression policies to optimize storage footprint.
+* **Observability (Prometheus Metrics Exporter)**: Custom `/metrics` exporter exposing fleet-wide telemetry, ML prediction frequencies, system alerts, and critical anomalies for Grafana visualization.
 
 ---
 
-## 🛠️ Tech Stack
+## Machine Learning Inferences & MLOps
 
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| Backend | Django 6.0 + DRF | REST API, ORM, Auth, Admin |
-| Real-Time | Django Channels + Redis | WebSocket telemetry streaming |
-| Task Queue | Celery + Redis | Async ML inference, batch analytics |
-| Database | PostgreSQL 16 | Relational data, time-series telemetry |
-| Cache/Broker | Redis 7 | WebSocket layer, task broker, caching |
-| Frontend | React 19 + Vite 8 | SPA with dark aerospace UI |
-| Charting | Recharts + D3.js | Interactive real-time visualizations |
-| 3D | Three.js + React Three Fiber | Digital twin rendering |
-| Maps | Leaflet + React-Leaflet | GPS tracking, mission planning |
-| State | Zustand | Lightweight reactive state management |
-| ML | scikit-learn + NumPy/SciPy | Model training and inference |
-| Container | Docker + Docker Compose | Multi-service deployment |
+The platform serves four predictive models. Inference weights are loaded and cached in memory at Django startup, routing execution dynamically through the **ONNX Runtime** engine for optimized C++ graph execution if `.onnx` binaries are available:
+
+1. **Battery Remaining Useful Life (RUL)**: Gradient Boosting Regressor predicting remaining cycles before degradation capacity drops below safety threshold (Test $R^2$: `0.996`).
+2. **Motor Vibration Anomaly Detection**: Isolation Forest classifier isolating bearing faults, prop imbalance, or structural vibrations from high-frequency telemetry inputs (AUC-ROC: `0.960`).
+3. **Pre-flight Mission Risk Scorer**: Gradient Boosting Regressor scoring flight safety (0-100) based on weather factors, payload ratio, waypoint count, and historical drone airworthiness metrics (Test $R^2$: `0.910`).
+4. **Predictive Maintenance Urgency**: Random Forest Classifier evaluating component wear into low/medium/high/critical categories, automatically setting drone status to `maintenance` and logging system alerts (Weighted F1: `0.956`).
 
 ---
 
-## 📁 Project Structure
+## Getting Started
 
-```
-uav-analytics/
-├── backend/                    # Django Backend
-│   ├── apps/
-│   │   ├── accounts/           # JWT Auth, Users, Pilots
-│   │   ├── drones/             # Fleet Management, Component Health
-│   │   ├── flights/            # Flight Records, Analytics
-│   │   ├── telemetry/          # Telemetry Ingestion, WebSocket
-│   │   ├── missions/           # Mission Planning, Waypoints
-│   │   ├── maintenance/        # Maintenance Records
-│   │   ├── alerts/             # AI Alert Generation
-│   │   ├── analytics/          # Fleet Analytics, KPIs
-│   │   └── ml/                 # ML Inference Endpoints
-│   ├── config/                 # Django Settings (base/dev/prod)
-│   ├── core/                   # Shared Utilities
-│   ├── simulator/              # Physics-Based Telemetry Simulator
-│   └── requirements/           # Dependency Management
-├── frontend/                   # React Frontend
-│   └── src/
-│       ├── api/                # Axios Client, Endpoints
-│       ├── components/         # UI Components
-│       │   ├── layout/         # Sidebar, TopBar, AppShell
-│       │   ├── common/         # KPICard, DataTable, Gauge
-│       │   ├── dashboard/      # Dashboard Widgets
-│       │   ├── fleet/          # Fleet Management
-│       │   ├── telemetry/      # Real-Time Monitoring
-│       │   ├── digital-twin/   # 3D Visualization
-│       │   └── missions/       # Mission Planning
-│       ├── pages/              # Route Pages (9 pages)
-│       ├── stores/             # Zustand State Stores
-│       └── styles/             # Design System
-├── ml/                         # Machine Learning
-│   ├── data/                   # Synthetic Data Generators
-│   ├── training/               # Training Pipelines (5 models)
-│   └── models/                 # Trained Model Artifacts
-├── docker-compose.yml          # Dev Environment
-└── .github/workflows/          # CI/CD Pipelines
-```
+### 1. Backend Setup (SQLite / PostgreSQL)
+1. Navigate to the backend directory:
+   ```bash
+   cd backend
+   ```
+2. Activate your virtual environment and install requirements:
+   ```bash
+   .venv\Scripts\activate      # On Windows
+   source .venv/bin/activate   # On macOS/Linux
+   pip install -r requirements.txt
+   ```
+3. Run database migrations:
+   ```bash
+   python manage.py migrate
+   ```
+4. Seed mock fleet data:
+   ```bash
+   python manage.py seed_data
+   ```
+5. Start the development server (ASGI):
+   ```bash
+   python manage.py runserver
+   ```
 
----
+### 2. Frontend Setup (React / Vite)
+1. Navigate to the frontend directory:
+   ```bash
+   cd ../frontend
+   ```
+2. Install node modules and start Vite:
+   ```bash
+   npm install
+   npm run dev
+   ```
+   *The frontend dashboard will run at `http://localhost:5173/`.*
 
-## 🚀 Quick Start
-
-### Prerequisites
-- Python 3.13+
-- Node.js 22+
-- Docker & Docker Compose (recommended)
-
-### Option 1: Docker Compose (Recommended)
+### 3. Asynchronous Workers (Celery & Redis)
+Ensure Redis is running locally on port `6379`, then start the worker processes:
 ```bash
-git clone https://github.com/yourusername/uav-analytics.git
-cd uav-analytics
-docker-compose up --build
-```
-Access: Frontend → http://localhost:5173 | API → http://localhost:8000/api/
+# Terminal 1: Start tasks worker
+celery -A config worker --loglevel=info
 
-### Option 2: Manual Setup
+# Terminal 2: Start scheduler beat
+celery -A config beat --loglevel=info
+```
+
+---
+
+## Database Optimization
+
+To configure the telemetry table for production-scale write loads, execute the following SQL script on your PostgreSQL instance:
 ```bash
-# Backend
-cd backend
-python -m venv .venv && .venv/Scripts/activate  # Windows
-pip install -r requirements/development.txt
-python manage.py migrate
-python manage.py createsuperuser
-python manage.py runserver
-
-# Frontend (new terminal)
-cd frontend
-npm install
-npm run dev
-
-# Simulator (new terminal)
-cd backend
-python -m simulator.engine --profile survey --dry-run
+psql -h <db_host> -U <db_user> -d <db_name> -f migrate_timescaledb.sql
 ```
-
-### Train ML Models
-```bash
-cd ml
-python data/generate_battery_data.py --batteries 20 --cycles 500
-python training/train_battery_rul.py
-python training/train_motor_anomaly.py
-python training/train_mission_risk.py
-python training/train_maintenance.py
-```
-
----
-
-## 📡 API Reference
-
-### Authentication
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/register/` | User registration |
-| POST | `/api/auth/token/` | JWT token obtain |
-| POST | `/api/auth/token/refresh/` | JWT token refresh |
-
-### Fleet Management
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET/POST | `/api/drones/` | List/Create drones |
-| GET/PUT/DELETE | `/api/drones/{id}/` | Drone CRUD |
-| GET | `/api/drones/{id}/health/` | Component health |
-| GET | `/api/drones/{id}/battery/` | Battery profile |
-| GET | `/api/fleet/overview/` | Fleet KPIs |
-
-### Telemetry
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/telemetry/ingest/` | Ingest telemetry point |
-| POST | `/api/telemetry/batch/` | Batch ingest |
-| GET | `/api/telemetry/latest/{drone_id}/` | Latest telemetry |
-| WS | `/ws/telemetry/{drone_id}/` | Live WebSocket stream |
-
-### ML Predictions
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/ml/predict/battery-rul/` | Battery RUL prediction |
-| POST | `/api/ml/predict/motor-anomaly/` | Motor anomaly detection |
-| POST | `/api/ml/predict/mission-risk/` | Mission risk scoring |
-| POST | `/api/ml/predict/maintenance/` | Maintenance urgency |
-
----
-
-## 🧠 ML Models
-
-| Model | Algorithm | Dataset | Key Metric |
-|-------|-----------|---------|------------|
-| Battery RUL | Gradient Boosting | 10,000 cycles × 20 batteries | RMSE ~12 cycles |
-| Motor Anomaly | Isolation Forest | 10,500 samples (5% anomalous) | F1 > 0.85 |
-| Mission Risk | Gradient Boosting | 10,000 mission profiles | R² > 0.90 |
-| Maintenance | Random Forest | 20,000 component records | F1 > 0.80 |
-
----
-
-## 📊 Telemetry Simulator
-
-Physics-based simulation engine generating realistic UAV telemetry with:
-- **Flight profiles**: Survey grid, orbital inspection, delivery, circuit
-- **Battery model**: LiPo electrochemical voltage-capacity curves with load-dependent sag
-- **Motor model**: BLDC thermal dynamics with RPM response lag
-- **Environmental**: Wind gusts (Perlin noise), temperature lapse rate, barometric formula
-- **Sensor noise**: GPS (±2m CEP), IMU (±0.3°), barometer (±0.5m)
-- **Fault injection**: Motor degradation, GPS drift, battery cell failure, high vibration
-
-```bash
-python -m simulator.engine --profile survey --faults --rate 2
-```
-
----
-
-## 🖼️ Screenshots
-
-> Dashboard with fleet KPIs, active flights map, and real-time alerts
-> Fleet management with component health monitoring
-> Live telemetry with real-time charts and gauges
-> 3D Digital Twin with attitude synchronization
-
----
-
-## 📄 License
-
-MIT License — see [LICENSE](LICENSE) for details.
-
----
-
-<div align="center">
-Built with ❤️ for Aerospace + AI
-</div>
+This migrates the telemetry storage to a **TimescaleDB hypertable**, enabling automatic 7-day chunk partitioning, segmenting compression by `flight_id` (compressing records older than 14 days), and dropping chunks older than 90 days.
