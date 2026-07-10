@@ -19,6 +19,7 @@ RUN pip install --no-cache-dir -r requirements/production.txt
 
 # Copy project files
 COPY . .
+RUN python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
