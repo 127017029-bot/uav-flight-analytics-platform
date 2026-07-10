@@ -23,6 +23,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         
+    - name: Flake8 Style Linting
+      run: |
+        pip install flake8
+        flake8 backend/apps/ backend/config/ --count --select=E9,F63,F7,F82 --show-source --statistics
+        
     - name: Run Django System Checks
       run: |
         cd backend
@@ -47,3 +52,12 @@ jobs:
       run: |
         cd frontend
         npm run build
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Build Backend Docker Image
+      run: |
+        docker build -t uav-backend-local:test -f backend/Dockerfile backend/

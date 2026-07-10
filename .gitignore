@@ -38,6 +38,7 @@ ml/data/battery_degradation.csv
 # Machine Learning weights & binaries
 ml/models/*.pkl
 ml/models/*.onnx
+ml/models.zip
 
 # 5. IDEs & Editors
 .idea/

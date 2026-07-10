@@ -1,7 +1,7 @@
 """
 Mission Risk Scoring Model
 ============================
-XGBoost-based model for pre-flight mission risk assessment.
+Gradient Boosting model for pre-flight mission risk assessment.
 Scores missions 0-100 based on environmental, drone health,
 and mission complexity factors.
 """

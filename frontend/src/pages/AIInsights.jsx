@@ -41,7 +41,7 @@ const AIInsights = () => {
       setModels([
         { model_type: 'battery_rul', name: 'Battery RUL Prediction', description: 'Predicts battery cycles before failure.', accuracy: 0.996, is_active: true },
         { model_type: 'motor_anomaly', name: 'Motor Anomaly Detection', description: 'Detects bearing wear and imbalance using Isolation Forest.', accuracy: 0.961, is_active: true },
-        { model_type: 'mission_risk', name: 'Mission Risk Assessment', description: 'Pre-flight safety assessment (XGBoost GBR).', accuracy: 0.910, is_active: true },
+        { model_type: 'mission_risk', name: 'Mission Risk Assessment', description: 'Pre-flight safety assessment (Gradient Boosting Regressor).', accuracy: 0.910, is_active: true },
         { model_type: 'predictive_maintenance', name: 'Predictive Maintenance', description: 'RF urgency classification.', accuracy: 0.957, is_active: true }
       ]);
     }

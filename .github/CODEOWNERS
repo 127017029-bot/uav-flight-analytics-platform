@@ -1,0 +1,8 @@
+# CODEOWNERS Configuration
+# Assigns repository code owners for review mandates.
+
+# 1. Global owners
+*       @127017029-bot
+
+# 2. Machine Learning directory
+/ml/    @127017029-bot
