@@ -61,15 +61,19 @@ The platform serves four predictive models. Inference weights are loaded and cac
    source .venv/bin/activate   # On macOS/Linux
    pip install -r requirements.txt
    ```
-3. Run database migrations:
+3. Initialize Pre-trained Model Weights:
+   ```bash
+   python ml/download_models.py
+   ```
+4. Run database migrations:
    ```bash
    python manage.py migrate
    ```
-4. Seed mock fleet data:
+5. Seed mock fleet data:
    ```bash
    python manage.py seed_data
    ```
-5. Start the development server (ASGI):
+6. Start the development server (ASGI):
    ```bash
    python manage.py runserver
    ```

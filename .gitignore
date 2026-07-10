@@ -35,9 +35,9 @@ ml/data/*.json
 !ml/data/battery_degradation.csv # keep dummy data template if necessary, or ignore
 ml/data/battery_degradation.csv
 
-# Keep models so the backend runs immediately on checkout
-# ml/models/*.pkl
-# ml/models/*.onnx
+# Machine Learning weights & binaries
+ml/models/*.pkl
+ml/models/*.onnx
 
 # 5. IDEs & Editors
 .idea/
