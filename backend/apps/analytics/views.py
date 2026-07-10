@@ -96,3 +96,62 @@ class FlightComparisonView(APIView):
             return Response({'error': 'One or both flights not found.'}, status=404)
 
         return Response({'flight_a': data_a, 'flight_b': data_b})
+
+
+from django.http import HttpResponse
+
+def prometheus_metrics_view(request):
+    """Exposes real-time system and fleet metrics in a Prometheus scraping format."""
+    from apps.drones.models import Drone
+    from apps.flights.models import Flight
+    from apps.alerts.models import Alert
+    from apps.ml.models import MLModel, MLPrediction
+
+    active_drones = Drone.objects.filter(status='active').count()
+    maintenance_drones = Drone.objects.filter(status='maintenance').count()
+    total_drones = Drone.objects.count()
+
+    total_flights = Flight.objects.count()
+
+    active_alerts = Alert.objects.filter(is_acknowledged=False).count()
+    critical_alerts = Alert.objects.filter(is_acknowledged=False, severity='critical').count()
+
+    total_models = MLModel.objects.filter(is_active=True).count()
+    total_predictions = MLPrediction.objects.count()
+
+    metrics = [
+        "# HELP uav_drones_total Total registered drones in the fleet.",
+        "# TYPE uav_drones_total gauge",
+        f"uav_drones_total {total_drones}",
+        "",
+        "# HELP uav_drones_active_count Drones currently in operation.",
+        "# TYPE uav_drones_active_count gauge",
+        f"uav_drones_active_count {active_drones}",
+        "",
+        "# HELP uav_drones_maintenance_count Drones flagged for predictive maintenance.",
+        "# TYPE uav_drones_maintenance_count gauge",
+        f"uav_drones_maintenance_count {maintenance_drones}",
+        "",
+        "# HELP uav_flights_total Cumulative flights conducted.",
+        "# TYPE uav_flights_total counter",
+        f"uav_flights_total {total_flights}",
+        "",
+        "# HELP uav_alerts_active_total Active unacknowledged alerts.",
+        "# TYPE uav_alerts_active_total gauge",
+        f"uav_alerts_active_total {active_alerts}",
+        "",
+        "# HELP uav_alerts_critical_total Active critical severity issues.",
+        "# TYPE uav_alerts_critical_total gauge",
+        f"uav_alerts_critical_total {critical_alerts}",
+        "",
+        "# HELP uav_ml_models_active Active machine learning models in registry.",
+        "# TYPE uav_ml_models_active gauge",
+        f"uav_ml_models_active {total_models}",
+        "",
+        "# HELP uav_ml_predictions_total Cumulative AI inferences computed.",
+        "# TYPE uav_ml_predictions_total counter",
+        f"uav_ml_predictions_total {total_predictions}",
+    ]
+
+    response_text = "\n".join(metrics) + "\n"
+    return HttpResponse(response_text, content_type="text/plain; version=0.0.4")

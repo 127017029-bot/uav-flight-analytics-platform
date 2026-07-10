@@ -1,46 +1,51 @@
-# Python
+# ====================================================================
+# Git Ignore Configuration - UAV Digital Twin & Predictive Maintenance
+# ====================================================================
+
+# 1. Python & Django
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-.Python
-*.egg-info/
-*.egg
-dist/
-build/
-
-# Virtual Environment
-.venv/
-venv/
-env/
-
-# Django
-db.sqlite3
 *.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
 media/
 staticfiles/
+backend/static/
+backend/staticfiles/
+.env
 
-# ML Model Artifacts
-ml/models/*.pkl
-ml/data/*.csv
+# 2. Virtual Environments
+.venv/
+venv/
+ENV/
+env/
 
-# Node
+# 3. Node & Frontend
 node_modules/
-frontend/dist/
+dist/
+dist-ssr/
+*.local
+.eslintcache
 
-# IDE
-.vscode/
+# 4. Machine Learning Data & Large Assets
+ml/data/*.csv
+ml/data/*.json
+!ml/data/battery_degradation.csv # keep dummy data template if necessary, or ignore
+ml/data/battery_degradation.csv
+
+# Keep models so the backend runs immediately on checkout
+# ml/models/*.pkl
+# ml/models/*.onnx
+
+# 5. IDEs & Editors
 .idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
 *.swp
-*.swo
-
-# OS
 .DS_Store
 Thumbs.db
-
-# Environment
-.env
-*.env.local
-
-# Docker
-docker-compose.override.yml

@@ -1,0 +1,54 @@
+{
+  "model_name": "predictive_maintenance_rf",
+  "model_type": "predictive_maintenance",
+  "version": "1.0.0",
+  "algorithm": "RandomForestClassifier",
+  "weighted_f1": 0.9568,
+  "accuracy": 0.9557,
+  "per_class": {
+    "low": {
+      "precision": 0.9697,
+      "recall": 0.8205,
+      "f1": 0.8889
+    },
+    "medium": {
+      "precision": 0.8294,
+      "recall": 0.9259,
+      "f1": 0.875
+    },
+    "high": {
+      "precision": 0.9939,
+      "recall": 0.9641,
+      "f1": 0.9788
+    },
+    "critical": {
+      "precision": 0.8488,
+      "recall": 0.9358,
+      "f1": 0.8902
+    }
+  },
+  "feature_names": [
+    "total_hours",
+    "cycles_since_maintenance",
+    "avg_vibration",
+    "avg_temperature",
+    "anomaly_frequency",
+    "last_maintenance_days_ago",
+    "health_score",
+    "degradation_rate",
+    "component_age_days",
+    "max_temperature_recorded",
+    "rpm_variance_avg"
+  ],
+  "trained_at": "2026-07-10T22:03:37.921772",
+  "top_features": {
+    "last_maintenance_days_ago": 0.532,
+    "health_score": 0.1453,
+    "avg_vibration": 0.062,
+    "total_hours": 0.0535,
+    "degradation_rate": 0.0495,
+    "anomaly_frequency": 0.0401,
+    "avg_temperature": 0.0315,
+    "component_age_days": 0.0253
+  }
+}

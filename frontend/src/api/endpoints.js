@@ -88,48 +88,48 @@ export const getTelemetryChartData = (droneId, params) =>
 /*  Missions                                                          */
 /* ================================================================== */
 
-export const listMissions = (params) => client.get('/missions', { params });
+export const listMissions = (params) => client.get('/missions/', { params });
 
-export const getMission = (id) => client.get(`/missions/${id}`);
+export const getMission = (id) => client.get(`/missions/${id}/`);
 
-export const createMission = (data) => client.post('/missions', data);
+export const createMission = (data) => client.post('/missions/', data);
 
 export const updateMission = (id, data) =>
-  client.put(`/missions/${id}`, data);
+  client.put(`/missions/${id}/`, data);
 
 export const getMissionWaypoints = (id) =>
-  client.get(`/missions/${id}/waypoints`);
+  client.get(`/missions/${id}/waypoints/`);
 
 export const addMissionWaypoint = (id, data) =>
-  client.post(`/missions/${id}/waypoints`, data);
+  client.post(`/missions/${id}/waypoints/`, data);
 
 /* ================================================================== */
 /*  Maintenance                                                       */
 /* ================================================================== */
 
 export const listMaintenance = (params) =>
-  client.get('/maintenance', { params });
+  client.get('/maintenance/', { params });
 
-export const getMaintenance = (id) => client.get(`/maintenance/${id}`);
+export const getMaintenance = (id) => client.get(`/maintenance/${id}/`);
 
 export const createMaintenance = (data) =>
-  client.post('/maintenance', data);
+  client.post('/maintenance/', data);
 
 export const updateMaintenance = (id, data) =>
-  client.put(`/maintenance/${id}`, data);
+  client.put(`/maintenance/${id}/`, data);
 
 /* ================================================================== */
 /*  Alerts                                                            */
 /* ================================================================== */
 
-export const listAlerts = (params) => client.get('/alerts', { params });
+export const listAlerts = (params) => client.get('/alerts/', { params });
 
 /** @param {string} id */
 export const acknowledgeAlert = (id) =>
-  client.put(`/alerts/${id}/acknowledge`);
+  client.put(`/alerts/${id}/acknowledge/`);
 
 /** @param {string} id */
-export const resolveAlert = (id) => client.put(`/alerts/${id}/resolve`);
+export const resolveAlert = (id) => client.put(`/alerts/${id}/resolve/`);
 
 /* ================================================================== */
 /*  Analytics                                                         */
@@ -162,31 +162,31 @@ export const getFleetStatus = () => client.get('/fleet/status');
 /*  ML / Predictions                                                  */
 /* ================================================================== */
 
-export const listMLModels = () => client.get('/ml/models');
+export const listMLModels = () => client.get('/ml/models/');
 
 export const listPredictions = (params) =>
-  client.get('/ml/predictions', { params });
+  client.get('/ml/predictions/', { params });
 
 /** @param {string} droneId */
 export const predictBatteryRUL = (droneId) =>
-  client.post(`/ml/predict/battery-rul`, { drone_id: droneId });
+  client.post(`/ml/predict/battery-rul/`, { drone_id: droneId });
 
 /** @param {string} droneId */
 export const predictMotorAnomaly = (droneId) =>
-  client.post(`/ml/predict/motor-anomaly`, { drone_id: droneId });
+  client.post(`/ml/predict/motor-anomaly/`, { drone_id: droneId });
 
 /** @param {string} flightId */
 export const predictFlightAnomaly = (flightId) =>
-  client.post(`/ml/predict/flight-anomaly`, { flight_id: flightId });
+  client.post(`/ml/predict/flight-anomaly/`, { flight_id: flightId });
 
 /** @param {string} missionId */
 export const predictMissionRisk = (missionId) =>
-  client.post(`/ml/predict/mission-risk`, { mission_id: missionId });
+  client.post(`/ml/predict/mission-risk/`, { mission_id: missionId });
 
 /** @param {string} droneId */
 export const predictMaintenance = (droneId) =>
-  client.post(`/ml/predict/maintenance`, { drone_id: droneId });
+  client.post(`/ml/predict/maintenance/`, { drone_id: droneId });
 
 /** @param {Object} payload – { drone_ids: string[] } */
 export const batchAnalyze = (payload) =>
-  client.post('/ml/batch-analyze', payload);
+  client.post('/ml/batch-analyze/', payload);

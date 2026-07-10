@@ -2,6 +2,8 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Avg, Max, Min, Count, Q
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 from .models import TelemetryData
 from .serializers import (
     TelemetrySerializer, TelemetryCreateSerializer, TelemetryCompactSerializer,
@@ -9,16 +11,30 @@ from .serializers import (
 
 
 class TelemetryIngestView(generics.CreateAPIView):
-    """Ingest a single telemetry data point."""
+    """Ingest a single telemetry data point and broadcast to WebSockets."""
     queryset = TelemetryData.objects.all()
     serializer_class = TelemetryCreateSerializer
     permission_classes = [permissions.AllowAny]
 
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        channel_layer = get_channel_layer()
+        if channel_layer:
+            drone_id = instance.flight.drone_id
+            serialized_data = TelemetrySerializer(instance).data
+            async_to_sync(channel_layer.group_send)(
+                f'telemetry_{drone_id}',
+                {
+                    'type': 'telemetry_update',
+                    'data': serialized_data
+                }
+            )
+
 
 class TelemetryBatchIngestView(APIView):
-    """Ingest a batch of telemetry data points in a single request.
+    """Ingest a batch of telemetry data points and broadcast them to WebSockets.
 
-    Expects a JSON list of telemetry objects.  Returns 201 on success with
+    Expects a JSON list of telemetry objects. Returns 201 on success with
     the count of created records.
     """
     permission_classes = [permissions.AllowAny]
@@ -32,7 +48,20 @@ class TelemetryBatchIngestView(APIView):
             )
         serializer = TelemetryCreateSerializer(data=data, many=True)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        instances = serializer.save()
+
+        channel_layer = get_channel_layer()
+        if channel_layer and instances:
+            for instance in instances:
+                drone_id = instance.flight.drone_id
+                serialized_data = TelemetrySerializer(instance).data
+                async_to_sync(channel_layer.group_send)(
+                    f'telemetry_{drone_id}',
+                    {
+                        'type': 'telemetry_update',
+                        'data': serialized_data
+                    }
+                )
         return Response(
             {'created': len(serializer.data)},
             status=status.HTTP_201_CREATED,

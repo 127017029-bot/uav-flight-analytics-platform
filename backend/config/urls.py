@@ -1,8 +1,10 @@
 from django.contrib import admin
 from django.urls import include, path
+from apps.analytics.views import prometheus_metrics_view
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("metrics", prometheus_metrics_view, name="prometheus-metrics"),
     path("api/auth/",        include("apps.accounts.urls")),
     path("api/drones/",      include("apps.drones.urls")),
     path("api/flights/",     include("apps.flights.urls")),

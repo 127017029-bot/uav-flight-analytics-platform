@@ -1,0 +1,37 @@
+{
+  "model_name": "mission_risk_gbr",
+  "model_type": "mission_risk",
+  "version": "1.0.0",
+  "algorithm": "GradientBoostingRegressor",
+  "test_rmse": 5.55,
+  "test_mae": 4.36,
+  "test_r2": 0.9101,
+  "trained_at": "2026-07-10T22:03:28.597877",
+  "feature_names": [
+    "distance_total_km",
+    "max_altitude_planned",
+    "waypoint_count",
+    "weather_wind_speed",
+    "weather_visibility_km",
+    "weather_temperature",
+    "battery_soh",
+    "drone_total_hours",
+    "drone_total_flights",
+    "time_of_day_hour",
+    "payload_weight_ratio",
+    "estimated_duration_min",
+    "terrain_complexity",
+    "days_since_maintenance",
+    "component_health_avg"
+  ],
+  "top_features": {
+    "battery_soh": 0.2843,
+    "component_health_avg": 0.1949,
+    "max_altitude_planned": 0.0855,
+    "distance_total_km": 0.0699,
+    "days_since_maintenance": 0.0693,
+    "weather_visibility_km": 0.0685,
+    "time_of_day_hour": 0.0669,
+    "weather_wind_speed": 0.0612
+  }
+}
