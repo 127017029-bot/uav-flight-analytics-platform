@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import LoadingSpinner from '../components/common/LoadingSpinner';
+import { AlertTriangle } from 'lucide-react';
+import { getProfile } from '../api/endpoints';
 import './Settings.css';
 
 /** Settings - Platform configuration and user preferences. */
@@ -9,6 +12,52 @@ const Settings = () => {
     flightComplete: false,
     aiPredictions: true,
   });
+
+  const [profile, setProfile] = useState({
+    fullName: 'Riswan Ahmed',
+    email: 'riswan@uavplatform.com',
+    role: 'Fleet Manager',
+    organization: 'UAV Analytics Corp',
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  const loadProfile = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data } = await getProfile();
+      if (data) {
+        setProfile({
+          fullName: data.full_name || `${data.first_name} ${data.last_name}` || data.username || 'Riswan Ahmed',
+          email: data.email || 'riswan@uavplatform.com',
+          role: data.role || 'Fleet Manager',
+          organization: data.organization || 'UAV Analytics Corp',
+        });
+      }
+    } catch (err) {
+      console.warn('Failed to load profile (auth token might be missing/invalid):', err);
+      // Fallback silently to mock placeholders if auth is unconfigured in development
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const defaultApiEndpoint = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+  const defaultWsEndpoint = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws';
+
+  if (loading) {
+    return (
+      <div className="page-loading" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '400px', gap: 'var(--space-4)' }}>
+        <LoadingSpinner size={40} />
+        <span style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-base)' }}>Loading profile preferences...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="settings-page">
@@ -26,16 +75,16 @@ const Settings = () => {
           <div className="settings-form">
             <div className="form-group">
               <label>Full Name</label>
-              <input type="text" defaultValue="Riswan Ahmed" className="form-input" />
+              <input type="text" defaultValue={profile.fullName} key={profile.fullName} className="form-input" />
             </div>
             <div className="form-group">
               <label>Email</label>
-              <input type="email" defaultValue="riswan@uavplatform.com" className="form-input" />
+              <input type="email" defaultValue={profile.email} key={profile.email} className="form-input" />
             </div>
             <div className="form-row">
               <div className="form-group">
                 <label>Role</label>
-                <select className="form-input">
+                <select className="form-input" defaultValue={profile.role} key={profile.role}>
                   <option>Fleet Manager</option>
                   <option>Pilot</option>
                   <option>Analyst</option>
@@ -44,7 +93,7 @@ const Settings = () => {
               </div>
               <div className="form-group">
                 <label>Organization</label>
-                <input type="text" defaultValue="UAV Analytics Corp" className="form-input" />
+                <input type="text" defaultValue={profile.organization} key={profile.organization} className="form-input" />
               </div>
             </div>
             <button className="btn-primary">Save Profile</button>
@@ -57,11 +106,11 @@ const Settings = () => {
           <div className="settings-form">
             <div className="form-group">
               <label>API Endpoint</label>
-              <input type="text" defaultValue="http://localhost:8000/api" className="form-input mono" />
+              <input type="text" defaultValue={defaultApiEndpoint} key={defaultApiEndpoint} className="form-input mono" />
             </div>
             <div className="form-group">
               <label>WebSocket URL</label>
-              <input type="text" defaultValue="ws://localhost:8000/ws" className="form-input mono" />
+              <input type="text" defaultValue={defaultWsEndpoint} key={defaultWsEndpoint} className="form-input mono" />
             </div>
             <div className="form-row">
               <div className="form-group">

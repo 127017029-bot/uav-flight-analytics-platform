@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import StatusBadge from '../components/common/StatusBadge';
 import MissionMap from '../components/missions/MissionMap';
+import LoadingSpinner from '../components/common/LoadingSpinner';
+import { AlertTriangle } from 'lucide-react';
 import useFleetStore from '../stores/useFleetStore';
 import {
   listMissions,
@@ -24,6 +26,9 @@ const Missions = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [loadingRisk, setLoadingRisk] = useState(false);
   const [riskResult, setRiskResult] = useState(null);
+  const [riskError, setRiskError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   // New Mission form state
   const [newMissionForm, setNewMissionForm] = useState({
@@ -40,23 +45,19 @@ const Missions = () => {
   }, [fetchDrones]);
 
   const loadMissionsList = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const { data } = await listMissions();
-      setMissions(data);
-      if (data && data.length > 0 && !selectedMission) {
+      setMissions(data || []);
+      if (data && data.length > 0) {
         handleSelectMission(data[0]);
       }
     } catch (err) {
       console.error('Failed to load missions:', err);
-      // Fallback
-      const fallback = [
-        { id: 1, name: 'Surveillance Flight A', mission_type: 'survey', status: 'planned', priority: 'high', estimated_distance_km: 2.4, estimated_duration_min: 15, max_altitude_m: 120 },
-        { id: 2, name: 'Wind Turbine Grid Check', mission_type: 'inspection', status: 'completed', priority: 'critical', estimated_distance_km: 1.8, estimated_duration_min: 12, max_altitude_m: 80 }
-      ];
-      setMissions(fallback);
-      if (!selectedMission) {
-        handleSelectMission(fallback[0]);
-      }
+      setError(err.message || 'Failed to retrieve mission files.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -64,6 +65,7 @@ const Missions = () => {
     setSelectedMission(mission);
     setIsCreating(false);
     setRiskResult(null);
+    setRiskError(null);
     try {
       const { data } = await getMissionWaypoints(mission.id);
       setWaypoints(data || []);
@@ -100,6 +102,7 @@ const Missions = () => {
     setSelectedMission(null);
     setWaypoints([]);
     setRiskResult(null);
+    setRiskError(null);
     if (drones && drones.length > 0) {
       setNewMissionForm(prev => ({ ...prev, assigned_drone: drones[0].id.toString() }));
     }
@@ -141,22 +144,40 @@ const Missions = () => {
   const handleAssessRisk = async () => {
     if (!selectedMission) return;
     setLoadingRisk(true);
+    setRiskError(null);
+    setRiskResult(null);
     try {
       const { data } = await predictMissionRisk(selectedMission.id.toString());
       setRiskResult(data);
     } catch (err) {
       console.error('Failed to predict risk:', err);
-      setRiskResult({
-        risk_score: 45,
-        risk_level: 'medium',
-        risk_factors: { weather: 0.35, battery: 0.52, distance: 0.42, drone_health: 0.22 }
-      });
+      setRiskError(err.message || 'AI prediction model failed.');
     } finally {
       setLoadingRisk(false);
     }
   };
 
   const priorityColors = { low: '#64748b', medium: '#38bdf8', high: '#fbbf24', critical: '#f87171' };
+
+  if (loading) {
+    return (
+      <div className="page-loading" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '400px', gap: 'var(--space-4)' }}>
+        <LoadingSpinner size={40} />
+        <span style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-base)' }}>Loading mission layouts and boundaries...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="page-error card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '350px', gap: 'var(--space-4)', padding: 'var(--space-8)', textAlign: 'center', border: '1px solid var(--color-danger-border)', background: 'var(--color-danger-bg)', margin: 'var(--space-4)' }}>
+        <AlertTriangle size={48} style={{ color: 'var(--color-danger)' }} />
+        <h3 style={{ color: 'var(--color-text-primary)' }}>Failed to Load Missions</h3>
+        <p style={{ color: 'var(--color-text-secondary)', maxWidth: '450px' }}>{error}</p>
+        <button className="btn btn-primary" onClick={loadMissionsList} style={{ marginTop: 'var(--space-2)' }}>Retry Connection</button>
+      </div>
+    );
+  }
 
   return (
     <div className="missions-page">
@@ -326,7 +347,9 @@ const Missions = () => {
                   </button>
                 </div>
                 
-                {riskResult ? (
+                {riskError ? (
+                  <p style={{ color: 'var(--color-danger)', fontSize: '11px', marginTop: '8px' }}>⚠️ {riskError}</p>
+                ) : riskResult ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '5px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span>Risk Level:</span>

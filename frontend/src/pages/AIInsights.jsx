@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import useFleetStore from '../stores/useFleetStore';
+import LoadingSpinner from '../components/common/LoadingSpinner';
+import { AlertTriangle, Clock } from 'lucide-react';
 import {
   listMLModels,
+  listPredictions,
   predictBatteryRUL,
   predictMotorAnomaly,
   predictMaintenance,
@@ -19,10 +22,13 @@ const AIInsights = () => {
   const [predictionsResults, setPredictionsResults] = useState({});
   const [loadingModels, setLoadingModels] = useState({});
   const [isRetraining, setIsRetraining] = useState(false);
+  const [predictionsHistory, setPredictionsHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchDrones();
-    loadModelsFromRegistry();
+    loadPageData();
   }, [fetchDrones]);
 
   useEffect(() => {
@@ -31,19 +37,30 @@ const AIInsights = () => {
     }
   }, [drones, selectedDroneId]);
 
-  const loadModelsFromRegistry = async () => {
+  const loadPageData = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const { data } = await listMLModels();
-      setModels(data);
+      const [modelsRes, historyRes] = await Promise.all([
+        listMLModels(),
+        listPredictions({ ordering: '-created_at', limit: 10 }),
+      ]);
+      setModels(modelsRes.data || []);
+      setPredictionsHistory(historyRes.data || []);
     } catch (err) {
       console.error('Failed to load registered models:', err);
-      // Fallback default list
-      setModels([
-        { model_type: 'battery_rul', name: 'Battery RUL Prediction', description: 'Predicts battery cycles before failure.', accuracy: 0.996, is_active: true },
-        { model_type: 'motor_anomaly', name: 'Motor Anomaly Detection', description: 'Detects bearing wear and imbalance using Isolation Forest.', accuracy: 0.961, is_active: true },
-        { model_type: 'mission_risk', name: 'Mission Risk Assessment', description: 'Pre-flight safety assessment (Gradient Boosting Regressor).', accuracy: 0.910, is_active: true },
-        { model_type: 'predictive_maintenance', name: 'Predictive Maintenance', description: 'RF urgency classification.', accuracy: 0.957, is_active: true }
-      ]);
+      setError(err.message || 'Failed to fetch AI models registry.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const reloadPredictionsHistory = async () => {
+    try {
+      const { data } = await listPredictions({ ordering: '-created_at', limit: 10 });
+      setPredictionsHistory(data || []);
+    } catch (err) {
+      console.warn('Failed to refresh prediction history:', err);
     }
   };
 
@@ -64,6 +81,7 @@ const AIInsights = () => {
       
       if (res && res.data) {
         setPredictionsResults(prev => ({ ...prev, [modelType]: res.data }));
+        reloadPredictionsHistory();
       }
     } catch (err) {
       console.error(`Prediction failed for model ${modelType}:`, err);
@@ -80,7 +98,7 @@ const AIInsights = () => {
     setIsRetraining(true);
     setTimeout(() => {
       setIsRetraining(false);
-      loadModelsFromRegistry();
+      loadPageData();
     }, 2000);
   };
 
@@ -161,6 +179,26 @@ const AIInsights = () => {
       default: return '🔧';
     }
   };
+
+  if (loading) {
+    return (
+      <div className="page-loading" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '400px', gap: 'var(--space-4)' }}>
+        <LoadingSpinner size={40} />
+        <span style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-base)' }}>Loading neural network models...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="page-error card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '350px', gap: 'var(--space-4)', padding: 'var(--space-8)', textAlign: 'center', border: '1px solid var(--color-danger-border)', background: 'var(--color-danger-bg)', margin: 'var(--space-4)' }}>
+        <AlertTriangle size={48} style={{ color: 'var(--color-danger)' }} />
+        <h3 style={{ color: 'var(--color-text-primary)' }}>Failed to Load AI Insights</h3>
+        <p style={{ color: 'var(--color-text-secondary)', maxWidth: '450px' }}>{error}</p>
+        <button className="btn btn-primary" onClick={loadPageData} style={{ marginTop: 'var(--space-2)' }}>Retry Connection</button>
+      </div>
+    );
+  }
 
   return (
     <div className="ai-page">
@@ -249,6 +287,46 @@ const AIInsights = () => {
           </div>
         ))}
       </div>
+
+      {/* Predictions log section */}
+      <section className="predictions-history card" style={{ marginTop: 'var(--space-8)', padding: 'var(--space-6)' }}>
+        <h3 style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)', marginBottom: 'var(--space-4)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span>📜</span> Recent AI Inferences Log
+        </h3>
+        {predictionsHistory.length === 0 ? (
+          <p className="scene-hint" style={{ padding: 'var(--space-4)', textAlign: 'center' }}>No recent predictions found in history log.</p>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--text-sm)' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--color-border)', textAlign: 'left', color: 'var(--color-text-secondary)' }}>
+                  <th style={{ padding: 'var(--space-2) var(--space-4)' }}>Time</th>
+                  <th style={{ padding: 'var(--space-2) var(--space-4)' }}>Drone</th>
+                  <th style={{ padding: 'var(--space-2) var(--space-4)' }}>Type</th>
+                  <th style={{ padding: 'var(--space-2) var(--space-4)' }}>Prediction Value</th>
+                  <th style={{ padding: 'var(--space-2) var(--space-4)' }}>Label</th>
+                  <th style={{ padding: 'var(--space-2) var(--space-4)' }}>Confidence</th>
+                </tr>
+              </thead>
+              <tbody>
+                {predictionsHistory.map((p) => (
+                  <tr key={p.id} style={{ borderBottom: '1px solid var(--color-border-subtle)', color: 'var(--color-text-primary)' }}>
+                    <td style={{ padding: 'var(--space-3) var(--space-4)' }}>
+                      <Clock size={12} style={{ marginRight: 6, verticalAlign: -1, color: 'var(--color-text-muted)' }} />
+                      {new Date(p.created_at).toLocaleString()}
+                    </td>
+                    <td style={{ padding: 'var(--space-3) var(--space-4)' }}>{p.drone_name}</td>
+                    <td style={{ padding: 'var(--space-3) var(--space-4)', textTransform: 'capitalize' }}>{p.type_display || p.prediction_type.replace('_', ' ')}</td>
+                    <td style={{ padding: 'var(--space-3) var(--space-4)', fontFamily: 'var(--font-mono)' }}>{p.prediction_value}</td>
+                    <td style={{ padding: 'var(--space-3) var(--space-4)' }}>{p.prediction_label || 'N/A'}</td>
+                    <td style={{ padding: 'var(--space-3) var(--space-4)', fontWeight: 'bold' }}>{(p.confidence_score * 100).toFixed(0)}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
     </div>
   );
 };

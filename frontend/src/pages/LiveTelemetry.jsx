@@ -3,6 +3,13 @@ import useTelemetryStore from '../stores/useTelemetryStore';
 import useFleetStore from '../stores/useFleetStore';
 import { connectWebSocket, disconnectWebSocket } from '../api/websocket';
 import GaugeWidget from '../components/common/GaugeWidget';
+import LoadingSpinner from '../components/common/LoadingSpinner';
+import { AlertTriangle } from 'lucide-react';
+import {
+  getLatestTelemetry,
+  getTelemetryStats,
+  getTelemetryChartData,
+} from '../api/endpoints';
 import {
   ResponsiveContainer,
   LineChart,
@@ -22,6 +29,8 @@ const LiveTelemetry = () => {
   const { drones, fetchDrones } = useFleetStore();
   const [selectedDroneId, setSelectedDroneId] = useState('');
   const { latestTelemetry, chartData, isStreaming, wsStatus } = useTelemetryStore();
+  const [loadingInitial, setLoadingInitial] = useState(false);
+  const [initialError, setInitialError] = useState(null);
 
   useEffect(() => {
     fetchDrones();
@@ -36,6 +45,55 @@ const LiveTelemetry = () => {
       setSelectedDroneId(drones[0].id.toString());
     }
   }, [drones, selectedDroneId]);
+
+  // Fetch initial telemetry snapshots, stats, and historical charts on drone select
+  useEffect(() => {
+    if (!selectedDroneId) return;
+
+    const loadInitialTelemetry = async () => {
+      setLoadingInitial(true);
+      setInitialError(null);
+      try {
+        // Fetch latest telemetry, stats, and chart data in parallel
+        const [latestRes, statsRes, chartRes] = await Promise.all([
+          getLatestTelemetry(selectedDroneId).catch(() => ({ data: null })),
+          getTelemetryStats(selectedDroneId).catch(() => ({ data: null })),
+          getTelemetryChartData(selectedDroneId).catch(() => ({ data: [] })),
+        ]);
+
+        if (latestRes.data) {
+          useTelemetryStore.getState().updateTelemetry(selectedDroneId, latestRes.data);
+        }
+
+        if (statsRes.data) {
+          useTelemetryStore.getState().setStats(statsRes.data);
+        }
+
+        const chartPoints = chartRes.data || [];
+        if (chartPoints.length > 0) {
+          const altitude = chartPoints.map((p) => ({ timestamp: p.timestamp, value: p.altitude_msl }));
+          const speed = chartPoints.map((p) => ({ timestamp: p.timestamp, value: p.ground_speed }));
+          const battery = chartPoints.map((p) => ({ timestamp: p.timestamp, value: p.battery_percentage }));
+          
+          useTelemetryStore.setState({
+            chartData: {
+              ...useTelemetryStore.getState().chartData,
+              altitude,
+              speed,
+              battery,
+            },
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load initial telemetry snapshot:', err);
+        setInitialError('Failed to fetch initial telemetry logs.');
+      } finally {
+        setLoadingInitial(false);
+      }
+    };
+
+    loadInitialTelemetry();
+  }, [selectedDroneId]);
 
   const handleConnectToggle = () => {
     if (isStreaming) {
@@ -130,6 +188,18 @@ const LiveTelemetry = () => {
           </button>
         </div>
       </div>
+
+      {loadingInitial ? (
+        <div className="page-loading" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', gap: 'var(--space-4)' }}>
+          <LoadingSpinner size={32} />
+          <span style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)' }}>Syncing drone telemetry logs...</span>
+        </div>
+      ) : initialError ? (
+        <div className="page-error card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '200px', gap: 'var(--space-2)', border: '1px solid var(--color-danger-border)', background: 'var(--color-danger-bg)', padding: 'var(--space-4)', margin: 'var(--space-4) 0' }}>
+          <AlertTriangle size={32} style={{ color: 'var(--color-danger)' }} />
+          <p style={{ color: 'var(--color-text-secondary)' }}>{initialError}</p>
+        </div>
+      ) : null}
 
       <div className="telemetry-grid">
         {/* Left: Gauges */}

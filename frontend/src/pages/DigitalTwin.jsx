@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import useTelemetryStore from '../stores/useTelemetryStore';
 import useFleetStore from '../stores/useFleetStore';
 import { connectWebSocket, disconnectWebSocket } from '../api/websocket';
-import { predictMaintenance } from '../api/endpoints';
+import { predictMaintenance, getLatestTelemetry } from '../api/endpoints';
 import DroneScene from '../components/digital-twin/DroneScene';
+import LoadingSpinner from '../components/common/LoadingSpinner';
+import { AlertTriangle } from 'lucide-react';
 import './DigitalTwin.css';
 
 /**
@@ -13,6 +15,8 @@ const DigitalTwin = () => {
   const { drones, fetchDrones } = useFleetStore();
   const [selectedDroneId, setSelectedDroneId] = useState('');
   const { latestTelemetry, isStreaming, wsStatus } = useTelemetryStore();
+  const [loadingDrone, setLoadingDrone] = useState(false);
+  const [droneError, setDroneError] = useState(null);
   const [healthIndex, setHealthIndex] = useState({
     motor_1: 95, motor_2: 92, motor_3: 94, motor_4: 91,
     battery: 98, gps: 99, imu: 97, overall: 96.0
@@ -31,28 +35,45 @@ const DigitalTwin = () => {
     }
   }, [drones, selectedDroneId]);
 
-  // Fetch component maintenance scores when drone is selected or streaming starts
+  // Fetch component maintenance scores and latest telemetry when drone is selected or streaming starts
   useEffect(() => {
     if (selectedDroneId) {
-      fetchMaintenanceHealth(selectedDroneId);
+      fetchDroneDetails(selectedDroneId);
     }
   }, [selectedDroneId, isStreaming]);
 
-  const fetchMaintenanceHealth = async (droneId) => {
+  const fetchDroneDetails = async (droneId) => {
+    setLoadingDrone(true);
+    setDroneError(null);
     try {
-      const { data } = await predictMaintenance(droneId);
-      if (data && data.components) {
+      const [maintRes, telemRes] = await Promise.all([
+        predictMaintenance(droneId).catch(() => ({ data: null })),
+        getLatestTelemetry(droneId).catch(() => ({ data: null }))
+      ]);
+
+      if (maintRes.data && maintRes.data.components) {
         const healths = {};
-        data.components.forEach(c => {
+        maintRes.data.components.forEach(c => {
           // map classification to a visual health score
           const scoreMap = { low: 95, medium: 78, high: 62, critical: 42 };
           healths[c.component] = scoreMap[c.urgency] || 95;
         });
-        healths['overall'] = data.overall_health_score;
-        setHealthIndex(healths);
+        healths['overall'] = maintRes.data.overall_health_score;
+        // Merge missing keys with baseline defaults
+        setHealthIndex(prev => ({
+          ...prev,
+          ...healths
+        }));
+      }
+
+      if (telemRes.data) {
+        useTelemetryStore.getState().updateTelemetry(droneId, telemRes.data);
       }
     } catch (err) {
-      console.warn('Failed to load predictive maintenance scores, using defaults:', err);
+      console.warn('Failed to load initial drone details:', err);
+      setDroneError('Failed to fetch initial telemetry or maintenance health indexes.');
+    } finally {
+      setLoadingDrone(false);
     }
   };
 
@@ -118,6 +139,18 @@ const DigitalTwin = () => {
           </button>
         </div>
       </div>
+
+      {loadingDrone ? (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px', background: 'var(--color-bg-tertiary)', borderBottom: '1px solid var(--color-border)', borderRadius: '4px', margin: '0 0 var(--space-4) 0' }}>
+          <LoadingSpinner size={16} />
+          <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>Syncing twin status...</span>
+        </div>
+      ) : droneError ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px', background: 'var(--color-danger-bg)', border: '1px solid var(--color-danger-border)', borderRadius: '4px', margin: '0 0 var(--space-4) 0', color: 'var(--color-danger)' }}>
+          <AlertTriangle size={16} />
+          <span style={{ fontSize: 'var(--text-sm)' }}>{droneError}</span>
+        </div>
+      ) : null}
 
       <div className="twin-layout">
         {/* WebGL Viewport */}
