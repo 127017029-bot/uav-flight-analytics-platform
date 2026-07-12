@@ -27,4 +27,4 @@ RUN python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
-CMD ["gunicorn","config.asgi:application","-w","4","-k","uvicorn.workers.UvicornWorker","--bind","0.0.0.0:8000"]
+CMD ["sh", "-c", "python manage.py migrate --noinput && gunicorn config.asgi:application -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000"]

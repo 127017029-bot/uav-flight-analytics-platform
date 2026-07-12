@@ -27,23 +27,44 @@ ALLOWED_HOSTS = [
 ]
 
 # ---------------------------------------------------------------------------
-# Database – Production PostgreSQL
+# Database – Production PostgreSQL (Support both DATABASE_URL and distinct envs)
 # ---------------------------------------------------------------------------
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("DB_NAME", "uav_analytics"),
-        "USER": os.environ.get("DB_USER"),
-        "PASSWORD": os.environ.get("DB_PASSWORD"),
-        "HOST": os.environ.get("DB_HOST"),
-        "PORT": os.environ.get("DB_PORT", "5432"),
-        "CONN_MAX_AGE": 600,
-        "OPTIONS": {
-            "connect_timeout": 10,
-            "sslmode": os.environ.get("DB_SSLMODE", "require"),
-        },
+import urllib.parse as urlparse
+
+db_url = os.environ.get("DATABASE_URL")
+if db_url:
+    url = urlparse.urlparse(db_url)
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": url.path[1:],
+            "USER": url.username,
+            "PASSWORD": url.password,
+            "HOST": url.hostname,
+            "PORT": url.port or "5432",
+            "CONN_MAX_AGE": 600,
+            "OPTIONS": {
+                "connect_timeout": 10,
+                "sslmode": os.environ.get("DB_SSLMODE", "require"),
+            },
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get("DB_NAME", "uav_analytics"),
+            "USER": os.environ.get("DB_USER"),
+            "PASSWORD": os.environ.get("DB_PASSWORD"),
+            "HOST": os.environ.get("DB_HOST"),
+            "PORT": os.environ.get("DB_PORT", "5432"),
+            "CONN_MAX_AGE": 600,
+            "OPTIONS": {
+                "connect_timeout": 10,
+                "sslmode": os.environ.get("DB_SSLMODE", "require"),
+            },
+        }
+    }
 
 # ---------------------------------------------------------------------------
 # Security Hardening
@@ -67,10 +88,17 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 
 # ---------------------------------------------------------------------------
-# Static Files – WhiteNoise
+# Static Files – WhiteNoise & Storages Configuration
 # ---------------------------------------------------------------------------
 MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")  # noqa: F405
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
 
 # ---------------------------------------------------------------------------
 # Email – Production SMTP
@@ -121,4 +149,17 @@ LOGGING = {
             "propagate": False,
         },
     },
+}
+
+# ---------------------------------------------------------------------------
+# CORS & Throttling production overrides
+# ---------------------------------------------------------------------------
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+
+# Disable throttling entirely in production to prevent IP rate-limiting false-positives
+REST_FRAMEWORK["DEFAULT_THROTTLE_CLASSES"] = ()
+REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {
+    "anon": None,
+    "user": None,
 }

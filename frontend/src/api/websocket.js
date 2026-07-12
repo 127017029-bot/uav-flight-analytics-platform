@@ -15,16 +15,19 @@ export const connectWebSocket = (droneId) => {
     socket.close();
   }
 
-  const wsUrlFromEnv = import.meta.env.VITE_WS_URL;
-  let wsUrl;
-  if (wsUrlFromEnv) {
-    wsUrl = `${wsUrlFromEnv}/telemetry/${droneId}/`;
-  } else {
-    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    const host = window.location.hostname;
-    // Django dev server runs on port 8000
-    wsUrl = `${protocol}://${host}:8000/ws/telemetry/${droneId}/`;
-  }
+  const getWsURL = () => {
+    const envUrl = import.meta.env.VITE_WS_URL;
+    if (envUrl) {
+      return `${envUrl}/telemetry/${droneId}/`;
+    }
+    // Dynamic fallback to production Railway backend WebSocket in production domain
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      return `wss://uav-flight-analytics-platform-production.up.railway.app/ws/telemetry/${droneId}/`;
+    }
+    return `ws://localhost:8000/ws/telemetry/${droneId}/`;
+  };
+
+  const wsUrl = getWsURL();
 
   const { setWsStatus, setStreaming, updateTelemetry, appendChartData } = useTelemetryStore.getState();
 

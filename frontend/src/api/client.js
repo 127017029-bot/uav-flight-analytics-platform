@@ -9,9 +9,19 @@
 
 import axios from 'axios';
 
+const getBaseURL = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl) return envUrl;
+  // Dynamic fallback to production Railway backend when deploying on Vercel
+  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return 'https://uav-flight-analytics-platform-production.up.railway.app/api';
+  }
+  return 'http://localhost:8000/api';
+};
+
 /** Base Axios instance */
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
+  baseURL: getBaseURL(),
   timeout: 30_000,
   headers: {
     'Content-Type': 'application/json',
