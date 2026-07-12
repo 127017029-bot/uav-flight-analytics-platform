@@ -110,15 +110,17 @@ class TelemetryLatestView(APIView):
 class TelemetryStatsView(APIView):
     """Return aggregated telemetry statistics.
 
-    Optionally filter by ``flight_id`` query parameter.
+    Optionally filter by ``flight_id`` query parameter or ``drone_id`` from path.
     """
     permission_classes = [permissions.AllowAny]
 
-    def get(self, request):
+    def get(self, request, drone_id=None):
         queryset = TelemetryData.objects.all()
         flight_id = request.query_params.get('flight_id')
         if flight_id:
             queryset = queryset.filter(flight_id=flight_id)
+        elif drone_id:
+            queryset = queryset.filter(flight__drone_id=drone_id)
 
         stats = queryset.aggregate(
             total_points=Count('id'),
@@ -147,6 +149,30 @@ class TelemetryChartDataView(APIView):
         queryset = (
             TelemetryData.objects
             .filter(flight_id=flight_id)
+            .order_by('timestamp')
+            .values(
+                'timestamp', 'altitude_msl', 'ground_speed',
+                'battery_percentage', 'battery_voltage',
+                'motor_rpm_1', 'motor_rpm_2', 'motor_rpm_3', 'motor_rpm_4',
+                'vibration_x', 'vibration_y', 'vibration_z',
+                'is_anomaly', 'anomaly_score',
+            )
+        )
+        return Response(list(queryset))
+
+
+class DroneTelemetryChartDataView(APIView):
+    """Return time-series telemetry data for charting based on drone's latest flight."""
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, drone_id):
+        from apps.flights.models import Flight
+        latest_flight = Flight.objects.filter(drone_id=drone_id).order_by('-created_at').first()
+        if not latest_flight:
+            return Response([])
+        queryset = (
+            TelemetryData.objects
+            .filter(flight=latest_flight)
             .order_by('timestamp')
             .values(
                 'timestamp', 'altitude_msl', 'ground_speed',

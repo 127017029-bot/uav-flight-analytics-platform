@@ -7,6 +7,7 @@ urlpatterns = [
     path("metrics", prometheus_metrics_view, name="prometheus-metrics"),
     path("api/auth/",        include("apps.accounts.urls")),
     path("api/drones/",      include("apps.drones.urls")),
+    path("api/fleet/",       include("apps.drones.fleet_urls")),
     path("api/flights/",     include("apps.flights.urls")),
     path("api/telemetry/",   include("apps.telemetry.urls")),
     path("api/missions/",    include("apps.missions.urls")),
