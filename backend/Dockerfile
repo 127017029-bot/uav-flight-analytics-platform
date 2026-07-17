@@ -13,12 +13,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements folder
+# Copy requirements
 COPY requirements/ requirements/
-RUN pip install --upgrade pip
-RUN pip install --no-cache-dir -r requirements/production.txt
 
-# Install Python packages
+# Install dependencies
+RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements/production.txt
 
 # Copy project
@@ -28,3 +27,5 @@ COPY . .
 RUN python manage.py collectstatic --noinput
 
 EXPOSE 8000
+
+CMD ["sh", "-c", "python manage.py migrate --noinput && gunicorn config.asgi:application --worker-class uvicorn.workers.UvicornWorker --workers 1 --bind 0.0.0.0:$PORT --log-level debug --capture-output --error-logfile - --access-logfile -"]
