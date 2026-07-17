@@ -19,8 +19,10 @@ class MLPredictor:
         if cls._models:
             return  # Already loaded
 
-        # The models directory is ml/models at the project root
+        # Resolve models directory (parent in development, base in Docker container)
         models_dir = os.path.join(settings.BASE_DIR.parent, 'ml', 'models')
+        if not os.path.exists(models_dir):
+            models_dir = os.path.join(settings.BASE_DIR, 'ml', 'models')
         print(f"[MLPredictor] Loading models from {models_dir}...")
 
         model_files = {
