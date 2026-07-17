@@ -20,11 +20,11 @@ export const connectWebSocket = (droneId) => {
     if (envUrl) {
       return `${envUrl}/telemetry/${droneId}/`;
     }
-    // Dynamic fallback to production Railway backend WebSocket in production domain
-    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-      return `wss://uav-flight-analytics-platform-production.up.railway.app/ws/telemetry/${droneId}/`;
+    // Local development check
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return `ws://localhost:8000/ws/telemetry/${droneId}/`;
     }
-    return `ws://localhost:8000/ws/telemetry/${droneId}/`;
+    return `wss://uav-flight-analytics-platform-production.up.railway.app/ws/telemetry/${droneId}/`;
   };
 
   const wsUrl = getWsURL();

@@ -12,11 +12,11 @@ import axios from 'axios';
 const getBaseURL = () => {
   const envUrl = import.meta.env.VITE_API_URL;
   if (envUrl) return envUrl;
-  // Dynamic fallback to production Railway backend when deploying on Vercel
-  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    return 'https://uav-flight-analytics-platform-production.up.railway.app/api';
+  // Local development check
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:8000/api';
   }
-  return 'http://localhost:8000/api';
+  return 'https://uav-flight-analytics-platform-production.up.railway.app/api';
 };
 
 /** Base Axios instance */
