@@ -20,11 +20,7 @@ DEBUG = False
 # ---------------------------------------------------------------------------
 # Hosts
 # ---------------------------------------------------------------------------
-ALLOWED_HOSTS = [
-    host.strip()
-    for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",")
-    if host.strip()
-]
+ALLOWED_HOSTS = ["*"]
 
 # ---------------------------------------------------------------------------
 # Database – Production PostgreSQL (Support both DATABASE_URL and distinct envs)
