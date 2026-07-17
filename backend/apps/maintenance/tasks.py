@@ -1,7 +1,8 @@
 from celery import shared_task
 from apps.drones.models import Drone
 from apps.ml.predictor import MLPredictor
-from apps.ml.models import MLModel, MLPrediction
+from apps.ml.models import MLPrediction
+from apps.ml.registry import get_active_model
 from apps.alerts.models import Alert
 from apps.telemetry.models import TelemetryData
 from django.db import models
@@ -12,7 +13,7 @@ def run_predictive_maintenance():
     print("[Celery Maintenance] Starting predictive maintenance analysis...")
     drones = Drone.objects.filter(status='active')
     
-    active_model = MLModel.objects.filter(model_type='predictive_maintenance', is_active=True).first()
+    active_model = get_active_model('predictive_maintenance')
     components = ['motor_1', 'motor_2', 'motor_3', 'motor_4', 'battery', 'esc', 'gps', 'imu']
     
     for drone in drones:

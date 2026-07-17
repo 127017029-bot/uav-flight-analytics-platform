@@ -8,10 +8,14 @@ from .serializers import MLModelSerializer, MLPredictionSerializer
 
 class MLModelListView(generics.ListAPIView):
     """List all registered ML models."""
-    queryset = MLModel.objects.all()
     serializer_class = MLModelSerializer
     permission_classes = [permissions.AllowAny]
     filterset_fields = ['model_type', 'is_active']
+
+    def get_queryset(self):
+        from .registry import register_models_in_db
+        register_models_in_db()
+        return MLModel.objects.all()
 
 
 class PredictionHistoryView(generics.ListAPIView):
@@ -95,7 +99,8 @@ class BatteryRULPredictView(APIView):
         from .predictor import MLPredictor
         res = MLPredictor.predict_battery_rul(features)
 
-        active_model = MLModel.objects.filter(model_type='battery_rul', is_active=True).first()
+        from .registry import get_active_model
+        active_model = get_active_model('battery_rul')
         pred = MLPrediction.objects.create(
             drone_id=drone_id,
             flight=latest_telem.flight,
@@ -164,7 +169,8 @@ class MotorAnomalyPredictView(APIView):
         from .predictor import MLPredictor
         res = MLPredictor.predict_motor_anomaly(features)
 
-        active_model = MLModel.objects.filter(model_type='motor_anomaly', is_active=True).first()
+        from .registry import get_active_model
+        active_model = get_active_model('motor_anomaly')
         pred = MLPrediction.objects.create(
             drone_id=drone_id,
             flight=latest_telem.flight,
@@ -311,7 +317,8 @@ class MissionRiskPredictView(APIView):
         from .predictor import MLPredictor
         res = MLPredictor.predict_mission_risk(features)
 
-        active_model = MLModel.objects.filter(model_type='mission_risk', is_active=True).first()
+        from .registry import get_active_model
+        active_model = get_active_model('mission_risk')
         pred = MLPrediction.objects.create(
             drone=drone,
             model=active_model,
@@ -360,7 +367,8 @@ class MaintenancePredictView(APIView):
         predictions = []
 
         from .predictor import MLPredictor
-        active_model = MLModel.objects.filter(model_type='predictive_maintenance', is_active=True).first()
+        from .registry import get_active_model
+        active_model = get_active_model('predictive_maintenance')
 
         overall_health = 100.0
         critical_count = 0
