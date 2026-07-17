@@ -18,6 +18,17 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.production")
 # before importing any channel routing.
 django_asgi_app = get_asgi_application()
 
-# Temporary isolation test: bypass Channels / ProtocolTypeRouter
-# to isolate if the hang is caused by WebSocket or Channels initialization.
-application = django_asgi_app
+# Import websocket routes after Django is initialised to avoid
+# AppRegistryNotReady errors.
+from apps.telemetry import routing as telemetry_routing  # noqa: E402
+
+application = ProtocolTypeRouter(
+    {
+        "http": django_asgi_app,
+        "websocket": AuthMiddlewareStack(
+            URLRouter(
+                telemetry_routing.websocket_urlpatterns,
+            )
+        ),
+    }
+)
