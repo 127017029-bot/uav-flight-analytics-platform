@@ -28,4 +28,4 @@ RUN python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "python manage.py migrate --noinput && gunicorn config.asgi:application --worker-class uvicorn.workers.UvicornWorker --workers 1 --bind 0.0.0.0:$PORT --log-level debug --capture-output --error-logfile - --access-logfile -"]
+CMD ["sh", "-c", "python manage.py migrate --noinput && gunicorn config.asgi:application --worker-class uvicorn.workers.UvicornWorker --workers 1 --bind 0.0.0.0:$PORT --log-level debug --error-logfile - --access-logfile -"]
