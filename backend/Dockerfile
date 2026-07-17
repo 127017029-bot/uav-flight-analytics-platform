@@ -28,4 +28,4 @@ RUN python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "python manage.py migrate --noinput && python -m daphne -b 0.0.0.0 -p $PORT -v 2 --access-log - --proxy-headers config.asgi:application"]
+CMD ["sh", "-c", "set -x && echo PORT=$PORT && which daphne && daphne --version && python manage.py migrate --noinput && echo 'Launching Daphne...' && daphne -b 0.0.0.0 -p $PORT config.asgi:application"]
