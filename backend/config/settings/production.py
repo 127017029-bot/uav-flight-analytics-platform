@@ -155,7 +155,7 @@ LOGGING = {
 # CORS & Throttling production overrides
 # ---------------------------------------------------------------------------
 CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_CREDENTIALS = False
 
 # Disable throttling entirely in production to prevent IP rate-limiting false-positives
 REST_FRAMEWORK["DEFAULT_THROTTLE_CLASSES"] = ()
