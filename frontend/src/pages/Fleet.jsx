@@ -71,10 +71,13 @@ export default function Fleet() {
     setError(null);
     try {
       const { data: dronesData } = await listDrones();
+      const drones = Array.isArray(dronesData)
+        ? dronesData
+        : dronesData?.results || [];
       
       // Fetch health details in parallel for all drones
       const dronesWithHealth = await Promise.all(
-        dronesData.map(async (drone) => {
+        drones.map(async (drone) => {
           try {
             const healthRes = await getDroneHealth(drone.id);
             const components = healthRes.data.components || [];

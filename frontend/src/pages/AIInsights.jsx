@@ -45,8 +45,14 @@ const AIInsights = () => {
         listMLModels(),
         listPredictions({ ordering: '-created_at', limit: 10 }),
       ]);
-      setModels(modelsRes.data || []);
-      setPredictionsHistory(historyRes.data || []);
+      const modelsItems = Array.isArray(modelsRes.data)
+        ? modelsRes.data
+        : modelsRes.data?.results || [];
+      const historyItems = Array.isArray(historyRes.data)
+        ? historyRes.data
+        : historyRes.data?.results || [];
+      setModels(modelsItems);
+      setPredictionsHistory(historyItems);
     } catch (err) {
       console.error('Failed to load registered models:', err);
       setError(err.message || 'Failed to fetch AI models registry.');
@@ -58,7 +64,10 @@ const AIInsights = () => {
   const reloadPredictionsHistory = async () => {
     try {
       const { data } = await listPredictions({ ordering: '-created_at', limit: 10 });
-      setPredictionsHistory(data || []);
+      const historyItems = Array.isArray(data)
+        ? data
+        : data?.results || [];
+      setPredictionsHistory(historyItems);
     } catch (err) {
       console.warn('Failed to refresh prediction history:', err);
     }

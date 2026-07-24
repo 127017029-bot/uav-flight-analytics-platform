@@ -25,8 +25,11 @@ const useAlertStore = create((set, get) => ({
   fetchAlerts: async () => {
     try {
       const { data } = await listAlerts();
-      const unread = data.filter((a) => !a.acknowledged).length;
-      set({ alerts: data, unreadCount: unread });
+      const items = Array.isArray(data)
+        ? data
+        : data?.results || [];
+      const unread = items.filter((a) => !a.acknowledged).length;
+      set({ alerts: items, unreadCount: unread });
     } catch (err) {
       console.error('Failed to fetch alerts:', err);
     }

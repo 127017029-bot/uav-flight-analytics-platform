@@ -16,7 +16,11 @@ const Maintenance = () => {
     setError(null);
     try {
       const { data } = await listMaintenance();
-      const mappedRecords = (data || []).map((r) => ({
+      const recordsItems = Array.isArray(data)
+        ? data
+        : data?.results || [];
+
+      const mappedRecords = recordsItems.map((r) => ({
         id: r.id,
         drone: r.drone_name || `Drone ${r.drone}`,
         type: r.maintenance_type,

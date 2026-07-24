@@ -69,7 +69,9 @@ const LiveTelemetry = () => {
           useTelemetryStore.getState().setStats(statsRes.data);
         }
 
-        const chartPoints = chartRes.data || [];
+        const chartPoints = Array.isArray(chartRes.data)
+          ? chartRes.data
+          : chartRes.data?.results || [];
         if (chartPoints.length > 0) {
           const altitude = chartPoints.map((p) => ({ timestamp: p.timestamp, value: p.altitude_msl }));
           const speed = chartPoints.map((p) => ({ timestamp: p.timestamp, value: p.ground_speed }));

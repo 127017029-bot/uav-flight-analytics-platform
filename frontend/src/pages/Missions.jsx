@@ -49,9 +49,12 @@ const Missions = () => {
     setError(null);
     try {
       const { data } = await listMissions();
-      setMissions(data || []);
-      if (data && data.length > 0) {
-        handleSelectMission(data[0]);
+      const missionsItems = Array.isArray(data)
+        ? data
+        : data?.results || [];
+      setMissions(missionsItems);
+      if (missionsItems && missionsItems.length > 0) {
+        handleSelectMission(missionsItems[0]);
       }
     } catch (err) {
       console.error('Failed to load missions:', err);
@@ -68,7 +71,10 @@ const Missions = () => {
     setRiskError(null);
     try {
       const { data } = await getMissionWaypoints(mission.id);
-      setWaypoints(data || []);
+      const waypointsItems = Array.isArray(data)
+        ? data
+        : data?.results || [];
+      setWaypoints(waypointsItems);
     } catch (err) {
       console.warn('Failed to load waypoints for mission:', err);
       setWaypoints([]);

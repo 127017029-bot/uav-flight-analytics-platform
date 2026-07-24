@@ -30,7 +30,10 @@ const useFleetStore = create((set) => ({
     set({ loading: true, error: null });
     try {
       const { data } = await listDrones();
-      set({ drones: data, loading: false });
+      const drones = Array.isArray(data)
+        ? data
+        : data?.results || [];
+      set({ drones, loading: false });
     } catch (err) {
       set({ error: err.message || 'Failed to fetch drones', loading: false });
     }
