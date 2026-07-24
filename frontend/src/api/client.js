@@ -8,15 +8,20 @@
  */
 
 import axios from 'axios';
-
 const getBaseURL = () => {
+  console.log("VITE_API_URL =", import.meta.env.VITE_API_URL);
+
   const envUrl = import.meta.env.VITE_API_URL;
   if (envUrl) return envUrl;
-  // Local development check
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    return 'http://localhost:8000/api';
+
+  if (
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1"
+  ) {
+    return "http://localhost:8000/api";
   }
-  return 'https://uav-flight-analytics-platform-production.up.railway.app/api';
+
+  return "https://uav-flight-analytics-platform.onrender.com/api";
 };
 
 /** Base Axios instance */
