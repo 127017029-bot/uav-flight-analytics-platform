@@ -67,7 +67,11 @@ export default function Dashboard() {
       setOverview(overviewRes.data);
 
       // Map API flights to DataTable shape
-      const mappedFlights = (flightsRes.data || []).map((flight) => ({
+      const flightItems = Array.isArray(flightsRes.data)
+        ? flightsRes.data
+        : flightsRes.data?.results || [];
+
+      const mappedFlights = flightItems.map((flight) => ({
         id: flight.id,
         drone: flight.drone_name || `Drone ${flight.drone}`,
         status: flight.status === 'in_progress' ? 'Active' : 'Warning',
@@ -78,7 +82,11 @@ export default function Dashboard() {
       setActiveFlights(mappedFlights);
 
       // Map alerts
-      const mappedAlerts = (alertsRes.data || []).map((alert) => ({
+      const alertItems = Array.isArray(alertsRes.data)
+        ? alertsRes.data
+        : alertsRes.data?.results || [];
+
+      const mappedAlerts = alertItems.map((alert) => ({
         id: alert.id,
         title: alert.title,
         severity: alert.severity === 'critical' ? 'Critical' : alert.severity === 'warning' ? 'Warning' : 'Info',
