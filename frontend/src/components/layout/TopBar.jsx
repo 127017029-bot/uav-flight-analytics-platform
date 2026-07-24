@@ -5,8 +5,8 @@
  * route pathname.
  */
 
-import { useLocation } from 'react-router-dom';
-import { Search, Bell } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Search, Bell, LogOut } from 'lucide-react';
 import './TopBar.css';
 
 /**
@@ -32,7 +32,41 @@ const ROUTE_TITLES = {
  */
 export default function TopBar() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const title = ROUTE_TITLES[pathname] || 'AEROGUARD';
+
+  // Read authenticated user's details for the avatar
+  const userStr = localStorage.getItem('uav_user');
+  let initials = 'RA';
+  let fullName = 'Riswan Ahmed';
+
+  if (userStr) {
+    try {
+      const user = JSON.parse(userStr);
+      fullName = user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username || fullName;
+      if (user.first_name && user.last_name) {
+        initials = `${user.first_name[0]}${user.last_name[0]}`.toUpperCase();
+      } else if (user.full_name) {
+        const parts = user.full_name.split(' ');
+        if (parts.length >= 2) {
+          initials = `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+        } else {
+          initials = user.full_name.slice(0, 2).toUpperCase();
+        }
+      } else if (user.username) {
+        initials = user.username.slice(0, 2).toUpperCase();
+      }
+    } catch (e) {
+      console.warn('Failed to parse user from localStorage', e);
+    }
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('uav_token');
+    localStorage.removeItem('uav_refresh_token');
+    localStorage.removeItem('uav_user');
+    navigate('/login', { replace: true });
+  };
 
   return (
     <header className="topbar">
@@ -57,9 +91,19 @@ export default function TopBar() {
         </button>
 
         {/* User avatar */}
-        <div className="topbar__avatar" title="Riswan A">
-          RA
+        <div className="topbar__avatar" title={fullName}>
+          {initials}
         </div>
+
+        {/* Logout */}
+        <button
+          className="topbar__logout"
+          onClick={handleLogout}
+          aria-label="Logout"
+          title="Logout"
+        >
+          <LogOut size={18} />
+        </button>
       </div>
     </header>
   );

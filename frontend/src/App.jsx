@@ -10,17 +10,28 @@ import Maintenance from './pages/Maintenance';
 import AIInsights from './pages/AIInsights';
 import DigitalTwin from './pages/DigitalTwin';
 import Settings from './pages/Settings';
+import Login from './pages/Login';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 import './App.css';
 
 /**
  * App - Root component with routing configuration.
- * All routes are nested under AppShell layout (sidebar + topbar).
+ * All dashboard routes are nested under ProtectedRoute and AppShell layout.
  */
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<AppShell />}>
+        <Route path="/login" element={<Login />} />
+
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <AppShell />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<Dashboard />} />
           <Route path="fleet" element={<Fleet />} />
           <Route path="flights" element={<Flights />} />

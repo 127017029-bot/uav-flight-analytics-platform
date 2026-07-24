@@ -126,6 +126,28 @@
   box-shadow: 0 0 16px var(--color-accent-glow);
 }
 
+/* ---- Logout button ---- */
+.topbar__logout {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  transition: all var(--transition-base);
+  cursor: pointer;
+}
+
+.topbar__logout:hover {
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger-border);
+  color: var(--color-danger);
+  box-shadow: 0 0 12px var(--color-danger-bg);
+}
+
 /* ---- Mobile ---- */
 @media (max-width: 768px) {
   .topbar__search-input {
