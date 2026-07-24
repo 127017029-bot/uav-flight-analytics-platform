@@ -61,7 +61,11 @@ export default function Flights() {
     setError(null);
     try {
       const { data } = await listFlights();
-      const mappedFlights = (data || []).map((flight) => {
+      const flightItems = Array.isArray(data)
+        ? data
+        : data?.results || [];
+
+      const mappedFlights = flightItems.map((flight) => {
         const dateStr = flight.start_time || flight.created_at || '';
         return {
           id: flight.flight_number,
